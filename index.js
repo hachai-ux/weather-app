@@ -8,29 +8,31 @@ display.appendChild(temperatureDisplay);
 display.appendChild(weatherDisplay);
 display.appendChild(weatherIcon);
 
-const getData = (concatUrl) => {
+
+const getData = async (concatUrl) => {
+
+    try{
     let temperature;
     let weatherMain;
     let weatherDescription;
 
-    return fetch(concatUrl, { mode: 'cors' })
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (response) {
-            console.log(response);
-            temperature = response.main.temp;
-            weatherMain = response.weather[0].main;
-            weatherDescription = response.weather[0].description;
-            weatherIconId = response.weather[0].icon;
+    const response = await fetch(concatUrl, { mode: 'cors' });
+    const data = await response.json();
+        
+    temperature = data.main.temp;
+    weatherMain = data.weather[0].main;
+    weatherDescription = data.weather[0].description;
+    weatherIconId = data.weather[0].icon;
 
-            return { temperature, weatherMain, weatherDescription, weatherIconId };
-                    
-        })
-        .catch(function (error) {
-            console.log(error);
-            temperatureDisplay.textContent = "Error, not found.";
-        });
+    return { temperature, weatherMain, weatherDescription, weatherIconId };
+    }
+    catch (error) {
+        console.log(error);
+        temperatureDisplay.textContent = "Error, not found.";
+        weatherDisplay.textContent = "";
+        weatherIcon.src = "";
+    }
+      
 };
 
 /*
@@ -63,29 +65,34 @@ form.addEventListener('submit', (e) => {
     const concatUrl = url.concat(searchTerm, temperatureUnit, apiKey);
     console.log(concatUrl);
 
-    getData(concatUrl).then((data) => {
-        console.log(data);
+    async function assignData() {
+        try {
+            const data = await getData(concatUrl);
 
-        switch (checkedUnit) {
-        case 'celsius':
-            temperatureDisplay.textContent = data.temperature + "°C";
-            break;
-        case 'fahrenheit':
-            temperatureDisplay.textContent = data.temperature + "F";
-            break;
-        };
+             switch (checkedUnit) {
+                case 'celsius':
+                    temperatureDisplay.textContent = data.temperature + "°C";
+                    break;
+                case 'fahrenheit':
+                    temperatureDisplay.textContent = data.temperature + "F";
+                    break;
+                };
         
         weatherDisplay.setAttribute('id', 'weather-display')
         weatherDisplay.textContent = data.weatherDescription;
 
         weatherIcon.src = iconUrl.concat(data.weatherIconId, "@2x.png");
 
-
-    })
-        .catch(function (error) {
-            console.log(error);
+        }
+        catch (error) {
+        console.log(error);
             temperatureDisplay.textContent = "Error, not found.";
-        });
+            weatherDisplay.textContent = "";
+            weatherIcon.src = "";
+        }
+    };
+    assignData();
+   
 });
 
 
